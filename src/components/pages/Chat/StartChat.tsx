@@ -31,7 +31,7 @@ export const StartChat = () => {
   return (
     <div
       onClick={handleStartChat}
-      className={`py-3 cursor-pointer transition-all font-sora rounded-full bg-secondary px-5 flex gap-x-4 items-center justify-between w-[335px] ${
+      className={`py-3 cursor-pointer transition-all font-sora rounded-full bg-secondary px-5 flex gap-x-4 items-center justify-between max-[410px]:w-full w-[335px] ${
         !modal ? "hover:bg-primary " : "opacity-50 pointer-events-none"
       } `}
     >

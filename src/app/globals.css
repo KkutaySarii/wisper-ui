@@ -38,3 +38,13 @@ body {
     text-wrap: balance;
   }
 }
+
+.entire-profile-dropdown {
+  display: none;
+}
+
+@media (max-width: 500px) {
+  .entire-profile-dropdown {
+    display: flex;
+  }
+}

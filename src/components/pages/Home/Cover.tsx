@@ -9,10 +9,15 @@ export const Cover = () => {
   const screenWidth = usePageWidth();
 
   return (
-    <div className="absolute mobile:top-0 top-[96px] right-0">
+    <div className="absolute mobile:top-0 top-[96px] right-0 mobile:bottom-0">
       <Image
         src={screenWidth <= 700 ? CoverImageMobile : CoverImageDesktop}
         alt="cover"
+        style={{
+          objectFit: "inherit",
+          objectPosition: "center",
+          height: "100%",
+        }}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { FC, useState } from "react";
 
 import { useTheme } from "next-themes";
 import Image from "next/image";
@@ -18,8 +18,14 @@ import { closeOverlay, openOverlay } from "@/redux/slices/overlaySlice";
 import { deletePublicKeyCookie } from "@/redux/slices/session/thunk";
 import { ShareIcon } from "@/assets/svg/ShareIcon";
 
-export const Profile = () => {
+interface ProfileDropdownProps {
+  page?: "entry" | "chat";
+}
+
+export const Profile: FC<ProfileDropdownProps> = ({ page = "chat" }) => {
   const { image } = useAppSelector((state) => state.session);
+
+  const { publicKeyBase58 } = useAppSelector((state) => state.session);
 
   const { theme } = useTheme();
 
@@ -28,31 +34,51 @@ export const Profile = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const closeDropdown = () => {
-    setIsOpen(false);
     dispatch(closeOverlay());
+    setIsOpen(false);
   };
 
   const ref = useOutsideClick(closeDropdown, isOpen);
 
   const handleDropdown = () => {
     setIsOpen((prev) => {
-      dispatch(openOverlay());
+      if (prev) {
+        dispatch(closeOverlay());
+      } else {
+        dispatch(openOverlay());
+      }
       return !prev;
     });
   };
 
+  if (!publicKeyBase58) return null;
+
   return (
-    <div ref={ref} className="relative">
+    <div
+      ref={ref}
+      className="relative z-50 py-1 px-2 rounded-full dark:bg-[#151515] bg-[#f3f3f3]"
+    >
       <button onClick={handleDropdown} className="flex items-center gap-x-2">
-        <Image alt="user" src={`/users/${image}.svg`} width={36} height={36} />
+        <Image
+          alt="user"
+          src={`/users/${image}.svg`}
+          width={page === "chat" ? 36 : 24}
+          height={page === "chat" ? 36 : 24}
+        />
         <DownIcon theme={theme} />
       </button>
-      {isOpen && <ProfileDropdown closeDropdown={closeDropdown} />}
+      {isOpen && <ProfileDropdown page={page} closeDropdown={closeDropdown} />}
     </div>
   );
 };
 
-const ProfileDropdown = ({ closeDropdown }: { closeDropdown: () => void }) => {
+const ProfileDropdown = ({
+  closeDropdown,
+  page,
+}: {
+  closeDropdown: () => void;
+  page: "entry" | "chat";
+}) => {
   const { publicKeyBase58 } = useAppSelector((state) => state.session);
 
   const { theme, setTheme } = useTheme();
@@ -129,7 +155,12 @@ const ProfileDropdown = ({ closeDropdown }: { closeDropdown: () => void }) => {
         <SettingsIcon theme={theme} size={20} />
         <span className="font-semibold text-sm">Profile Settings</span>
       </div>
-      <div className="px-5 py-3 flex items-center justify-between">
+
+      <div
+        className={`px-5 py-3 items-center justify-between ${
+          page === "chat" ? "flex" : "entire-profile-dropdown"
+        }`}
+      >
         <div className="flex items-center gap-x-2">
           {mode.icon}
           <span className="font-semibold text-sm">{mode.text}</span>
