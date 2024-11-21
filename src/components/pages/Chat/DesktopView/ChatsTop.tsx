@@ -29,7 +29,7 @@ export const ChatsTop = () => {
   const ref = useOutsideClick(close, isOpen);
 
   return (
-    <div className="flex font-sora justify-between items-center px-3">
+    <div className="flex font-sora justify-between items-center gap-2 px-3 flex-wrap">
       <h3 className="font-semibold text-2xl">Messages</h3>
       <div ref={ref} className="relative">
         <button

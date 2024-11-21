@@ -44,7 +44,7 @@ export const ZkAppProvider = ({
   return (
     <>
       {loadingCLient && (
-        <div className="fixed z-50 pointer-events-none bg-black bg-opacity-60 inset-0 flex items-center justify-center">
+        <div className="fixed z-[60] pointer-events-none bg-black bg-opacity-60 inset-0 flex items-center justify-center">
           <div className="w-16 h-16 rounded-full border-t-[4px] border-b-[4px] border-r-[4px] border-white animate-spin"></div>
         </div>
       )}
