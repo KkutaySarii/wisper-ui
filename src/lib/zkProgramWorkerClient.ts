@@ -22,6 +22,29 @@ export default class ZkProgramWorkerClient {
     return this._call("compileProgram", {});
   }
 
+  loadContract() {
+    return this._call("loadContract", {});
+  }
+
+  compileContract() {
+    return this._call("compileContract", {});
+  }
+  waitTransaction() {
+    return this._call("waitTransaction", {});
+  }
+
+  deployContract(privateKey: PrivateKey, feePayer: PublicKey) {
+    return this._call("deployContract", {
+      privateKey58: privateKey.toBase58(),
+      feePayerAddress58: feePayer.toBase58(),
+    });
+  }
+
+  async getTransactionJSON() {
+    const result = await this._call("getTransactionJSON", {});
+    return result;
+  }
+
   fetchAccount({
     publicKey,
   }: {

@@ -10,6 +10,7 @@ import {
   MerkleTree,
   JsonProof,
   ZkProgram,
+  AccountUpdate,
 } from "o1js";
 import * as crypto from "crypto";
 
@@ -18,7 +19,10 @@ import {
   CryptoUtils,
   generateProof,
   generateProofWithPreviousProof,
+  Wisper,
 } from "wisper-mina-contracts";
+
+type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 
 class MessageVerificationProgramProof extends ZkProgram.Proof(
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -30,6 +34,9 @@ const MERKLE_TREE_HEIGHT = 8; // Adjust based on your needs
 
 const state = {
   MessageVerificationProgram: null as null | typeof MessageVerificationProgram,
+  WisperContract: null as null | typeof Wisper,
+  WisperInstance: null as null | Wisper,
+  transaction: null as null | Transaction,
 };
 
 export interface EncryptedData {
@@ -85,14 +92,12 @@ const functions = {
     const Network = Mina.Network(
       "https://api.minascan.io/node/devnet/v1/graphql"
     );
-    console.log("Active Instance set to Devnet", Network);
     Mina.setActiveInstance(Network);
   },
   loadProgram: async () => {
     const { MessageVerificationProgram } = await import(
       "wisper-mina-contracts"
     );
-    console.log("Program Loaded", MessageVerificationProgram);
     state.MessageVerificationProgram = MessageVerificationProgram;
   },
   compileProgram: async () => {
@@ -100,6 +105,74 @@ const functions = {
       forceRecompile: true,
     });
   },
+  loadContract: async () => {
+    const { Wisper } = await import("wisper-mina-contracts");
+    state.WisperContract = Wisper;
+  },
+  compileContract: async () => {
+    const { MessageVerificationProgram } = await import(
+      "wisper-mina-contracts"
+    );
+    await MessageVerificationProgram!.compile({
+      forceRecompile: true,
+    });
+    await state.WisperContract!.compile({ forceRecompile: true });
+  },
+  deployContract: async (args: {
+    privateKey58: string;
+    feePayerAddress58: string;
+  }) => {
+    const feePayer: PublicKey = PublicKey.fromBase58(args.feePayerAddress58);
+    const zkAppPrivateKey: PrivateKey = PrivateKey.fromBase58(
+      args.privateKey58
+    );
+
+    state.WisperInstance = new state.WisperContract!(
+      zkAppPrivateKey.toPublicKey()
+    );
+    const transaction = await Mina.transaction(
+      {
+        sender: feePayer,
+        fee: 1e9,
+      },
+      async () => {
+        AccountUpdate.fundNewAccount(feePayer);
+        await state.WisperInstance!.deploy();
+      }
+    );
+
+    transaction.sign([zkAppPrivateKey]);
+
+    // await transaction.prove();
+
+    // console.log("Transaction sent", transaction.toJSON());
+
+    // const pendingTransaction = await transaction.send();
+    // console.log("Transaction sent", pendingTransaction);
+
+    // if (pendingTransaction.status === "rejected") {
+    //   throw new Error("error sending transaction");
+    // }
+
+    // await pendingTransaction.wait();
+    state.transaction = transaction;
+  },
+
+  waitTransaction: async () => {
+    await state.transaction!.prove();
+    if (state.transaction == null) {
+      throw new Error("No transaction found");
+    }
+    console.log("Transaction sending", state.transaction.toJSON());
+    const pendingTransaction = await state.transaction.send();
+    console.log("Transaction sent", pendingTransaction);
+    if (pendingTransaction.status === "rejected") {
+      throw new Error("error sending transaction");
+    }
+
+    await pendingTransaction.wait();
+  },
+
   fetchAccount: async (args: { publicKey58: string }) => {
     const publicKey = PublicKey.fromBase58(args.publicKey58);
     return await fetchAccount({ publicKey });
@@ -230,6 +303,10 @@ const functions = {
     );
 
     return { encryptedMessage: encryptedMessage, proof: proof.toJSON() };
+  },
+  getTransactionJSON: async () => {
+    console.log(state.transaction!.toPretty());
+    return state.transaction!.toJSON();
   },
 };
 
