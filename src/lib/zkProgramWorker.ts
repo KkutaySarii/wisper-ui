@@ -264,16 +264,16 @@ const functions = {
       messageHash.toFields()
     );
 
-    // const messageFields = args.pureMessage
-    //   .split("")
-    //   .map((char) => Field(char.charCodeAt(0)));
+    const messageFields = args.pureMessage
+      .split("")
+      .map((char) => Field(char.charCodeAt(0)));
 
-    // console.log("messageFields", messageFields);
+    console.log("messageFields", messageFields);
 
-    const messageSignatureFields = messageSignature.toFields();
-    merkleTree.setLeaf(0n, Poseidon.hash(messageSignatureFields));
+    // const messageSignatureFields = messageSignature.toFields();
+    // merkleTree.setLeaf(0n, Poseidon.hash(messageSignatureFields));
 
-    // merkleTree.setLeaf(0n, Poseidon.hash(messageFields));
+    merkleTree.setLeaf(0n, Poseidon.hash(messageFields));
 
     const proof = await generateProof(
       signingPublicKey,
@@ -325,17 +325,17 @@ const functions = {
       messageHash.toFields()
     );
 
-    const messageSignatureFields = messageSignature.toFields();
+    // const messageSignatureFields = messageSignature.toFields();
 
-    const leaf = BigInt(args.messageIndex);
-    merkleTree.setLeaf(leaf, Poseidon.hash(messageSignatureFields));
+    // const leaf = BigInt(args.messageIndex);
+    // merkleTree.setLeaf(leaf, Poseidon.hash(messageSignatureFields));
 
-    // args.messages.forEach((msg, index) => {
-    //   const messageFields = msg
-    //     .split("")
-    //     .map((char) => Field(char.charCodeAt(0)));
-    //   merkleTree.setLeaf(BigInt(index), Poseidon.hash(messageFields));
-    // });
+    args.messages.forEach((msg, index) => {
+      const messageFields = msg
+        .split("")
+        .map((char) => Field(char.charCodeAt(0)));
+      merkleTree.setLeaf(BigInt(index), Poseidon.hash(messageFields));
+    });
 
     const proof = await generateProofWithPreviousProof(
       signingPublicKey,
