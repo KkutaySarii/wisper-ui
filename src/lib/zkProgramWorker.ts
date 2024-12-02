@@ -85,6 +85,14 @@ export function decrypt(
   return decrypted;
 }
 
+const convertStringToField = (str: string) => {
+  const hexString = Buffer.from(str, "utf-8").toString("hex");
+
+  const BigIntId = BigInt("0x" + hexString);
+
+  return Field(BigIntId);
+};
+
 // ---------------------------------------------------------------------------------------
 
 const functions = {
@@ -143,34 +151,55 @@ const functions = {
 
     transaction.sign([zkAppPrivateKey]);
 
-    // await transaction.prove();
-
-    // console.log("Transaction sent", transaction.toJSON());
-
-    // const pendingTransaction = await transaction.send();
-    // console.log("Transaction sent", pendingTransaction);
-
-    // if (pendingTransaction.status === "rejected") {
-    //   throw new Error("error sending transaction");
-    // }
-
-    // await pendingTransaction.wait();
-    state.transaction = transaction;
+    return transaction!.toJSON();
   },
+  settleContract: async (args: {
+    feePayerAddress58: string;
+    hostUser58: string;
+    guestUser58: string;
+    chatId: string;
+    settleProof: JsonProof;
+    messages: string[];
+  }) => {
+    const feePayer: PublicKey = PublicKey.fromBase58(args.feePayerAddress58);
+    const hostUser: PublicKey = PublicKey.fromBase58(args.hostUser58);
+    const guestUser: PublicKey = PublicKey.fromBase58(args.guestUser58);
 
-  waitTransaction: async () => {
-    await state.transaction!.prove();
-    if (state.transaction == null) {
-      throw new Error("No transaction found");
-    }
-    console.log("Transaction sending", state.transaction.toJSON());
-    const pendingTransaction = await state.transaction.send();
-    console.log("Transaction sent", pendingTransaction);
-    if (pendingTransaction.status === "rejected") {
-      throw new Error("error sending transaction");
-    }
+    const chatIdField = convertStringToField(args.chatId);
 
-    await pendingTransaction.wait();
+    const timestamp = Field(BigInt(Date.now()));
+
+    const settleProof = (await MessageVerificationProgramProof.fromJSON(
+      args.settleProof
+    )) as MessageVerificationProgramProof;
+
+    const merkleTree = new MerkleTree(MERKLE_TREE_HEIGHT);
+
+    args.messages.forEach((msg, index) => {
+      const messageFields = msg
+        .split("")
+        .map((char) => Field(char.charCodeAt(0)));
+      merkleTree.setLeaf(BigInt(index), Poseidon.hash(messageFields));
+    });
+
+    const transaction = await Mina.transaction(
+      {
+        sender: feePayer,
+        fee: 1e9,
+      },
+      async () => {
+        await state.WisperInstance!.settleChat(
+          hostUser,
+          guestUser,
+          chatIdField,
+          merkleTree.getRoot(),
+          timestamp,
+          settleProof
+        );
+      }
+    );
+    await transaction.prove();
+    return transaction.toJSON();
   },
 
   fetchAccount: async (args: { publicKey58: string }) => {
@@ -235,9 +264,16 @@ const functions = {
       messageHash.toFields()
     );
 
-    const messageSignatureFields = messageSignature.toFields();
+    // const messageFields = args.pureMessage
+    //   .split("")
+    //   .map((char) => Field(char.charCodeAt(0)));
 
+    // console.log("messageFields", messageFields);
+
+    const messageSignatureFields = messageSignature.toFields();
     merkleTree.setLeaf(0n, Poseidon.hash(messageSignatureFields));
+
+    // merkleTree.setLeaf(0n, Poseidon.hash(messageFields));
 
     const proof = await generateProof(
       signingPublicKey,
@@ -255,6 +291,7 @@ const functions = {
     receiverPublicKey58: string;
     messageIndex: number;
     previousProof: JsonProof;
+    messages: string[];
   }): Promise<{ encryptedMessage: EncryptedData; proof: any }> => {
     const previousProof = (await MessageVerificationProgramProof.fromJSON(
       args.previousProof
@@ -293,6 +330,13 @@ const functions = {
     const leaf = BigInt(args.messageIndex);
     merkleTree.setLeaf(leaf, Poseidon.hash(messageSignatureFields));
 
+    // args.messages.forEach((msg, index) => {
+    //   const messageFields = msg
+    //     .split("")
+    //     .map((char) => Field(char.charCodeAt(0)));
+    //   merkleTree.setLeaf(BigInt(index), Poseidon.hash(messageFields));
+    // });
+
     const proof = await generateProofWithPreviousProof(
       signingPublicKey,
       messageHash,
@@ -303,10 +347,6 @@ const functions = {
     );
 
     return { encryptedMessage: encryptedMessage, proof: proof.toJSON() };
-  },
-  getTransactionJSON: async () => {
-    console.log(state.transaction!.toPretty());
-    return state.transaction!.toJSON();
   },
 };
 

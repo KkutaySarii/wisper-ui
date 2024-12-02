@@ -25,7 +25,7 @@ export interface ChatType {
 
 export interface MessageType {
   id: string;
-  content: MessagePack;
+  content: MessagePackType;
   time: string;
   timestamp: number;
   isMine: boolean;

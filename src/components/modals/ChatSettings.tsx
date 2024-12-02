@@ -12,8 +12,9 @@ import toast from "react-hot-toast";
 import { deleteChat } from "@/redux/slices/chat/slice";
 import { useRouter } from "next/navigation";
 import { timeout } from "@/utils/timeout";
-import { PrivateKey, PublicKey } from "o1js";
+import { JsonProof, PrivateKey, PublicKey } from "o1js";
 import ZkAppWorkerClient from "@/lib/zkProgramWorkerClient";
+import { waitForAccountActivation } from "@/utils/waitTx";
 
 interface ChatSettingsProps {
   icon: React.ReactNode;
@@ -25,12 +26,18 @@ interface ChatSettingsProps {
 
 export const ChatSettings = ({
   chat_id,
+  chatWith,
   setIsSettingsOpen,
   setIsDropdownOpen,
+  previousProof,
+  messages,
 }: {
   chat_id: string;
+  chatWith: string;
   setIsSettingsOpen: (value: boolean) => void;
   setIsDropdownOpen: (value: boolean) => void;
+  previousProof: JsonProof | null;
+  messages: string[];
 }) => {
   const { theme } = useTheme();
 
@@ -86,11 +93,10 @@ export const ChatSettings = ({
 
     console.log("creating deploy transaction...");
 
-    await zkappWorkerClient!.deployContract(privateKey, deployerPublicKey);
-
-    console.log("getting transaction JSON...");
-
-    const transactionJSON = await zkappWorkerClient!.getTransactionJSON();
+    const deployTxJson = await zkappWorkerClient!.deployContract(
+      privateKey,
+      deployerPublicKey
+    );
 
     console.log("checking AURO connection...");
 
@@ -101,18 +107,49 @@ export const ChatSettings = ({
     console.log("sending transaction...");
 
     const { hash } = await window.mina.sendTransaction({
-      transaction: transactionJSON,
+      transaction: deployTxJson,
       feePayer: {
         fee: TRANSACTION_FEE,
         memo: "",
       },
     });
     console.log("Transaction hash:", hash);
-
-    await zkappWorkerClient!.waitTransaction();
-
     console.log(
       "tx in minascan " + `https://minascan.io/devnet/tx/${hash}?type=zk-tx`
+    );
+
+    console.log("Waiting for zkApp account to become active...");
+    try {
+      const res = await waitForAccountActivation(hash);
+      if (res.status === "failed") {
+        throw new Error("zkApp account activation failed");
+      }
+      console.log("zkApp account is now active!");
+    } catch (error) {
+      console.error(error.message);
+      return;
+    }
+    const settleContractTxJson = await zkappWorkerClient!.settleContract({
+      feePayer: deployerPublicKey,
+      hostUser: deployerPublicKey,
+      guestUser: PublicKey.fromBase58(chatWith),
+      chatId: chat_id,
+      settleProof: previousProof,
+      messages,
+    });
+
+    console.log("sending transaction...");
+    const { hash: hashSettle } = await window.mina.sendTransaction({
+      transaction: settleContractTxJson,
+      feePayer: {
+        fee: TRANSACTION_FEE,
+        memo: "",
+      },
+    });
+    console.log("Transaction hash:", hashSettle);
+    console.log(
+      "tx in minascan " +
+        `https://minascan.io/devnet/tx/${hashSettle}?type=zk-tx`
     );
   };
 

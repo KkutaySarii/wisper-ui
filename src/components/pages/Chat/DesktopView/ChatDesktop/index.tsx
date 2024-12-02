@@ -31,6 +31,12 @@ const ChatDesktop = ({ chat }: { chat: ChatType }) => {
               isOnline={chat.receiperOnline}
               username={chat.username}
               image={chat.image}
+              previousProof={
+                chat?.messages?.length > 0
+                  ? chat?.messages[chat?.messages?.length - 1]?.content?.proof
+                  : null
+              }
+              messages={chat?.messages?.map((msg) => msg?.content?.pureMessage)}
               setIsSettingsOpen={setIsSettingsOpen}
               isTyping={chat.receiperTyping}
             />
@@ -46,6 +52,9 @@ const ChatDesktop = ({ chat }: { chat: ChatType }) => {
               chat?.messages?.length > 0
                 ? chat?.messages[chat?.messages?.length - 1]?.content?.proof
                 : null
+            }
+            messages={
+              chat?.messages?.map((msg) => msg?.content?.pureMessage) || []
             }
           />
         </>

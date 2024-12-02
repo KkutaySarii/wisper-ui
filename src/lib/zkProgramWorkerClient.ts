@@ -29,19 +29,38 @@ export default class ZkProgramWorkerClient {
   compileContract() {
     return this._call("compileContract", {});
   }
-  waitTransaction() {
-    return this._call("waitTransaction", {});
-  }
 
-  deployContract(privateKey: PrivateKey, feePayer: PublicKey) {
-    return this._call("deployContract", {
+  async deployContract(privateKey: PrivateKey, feePayer: PublicKey) {
+    const result = await this._call("deployContract", {
       privateKey58: privateKey.toBase58(),
       feePayerAddress58: feePayer.toBase58(),
     });
+    return result;
   }
 
-  async getTransactionJSON() {
-    const result = await this._call("getTransactionJSON", {});
+  async settleContract({
+    feePayer,
+    hostUser,
+    guestUser,
+    chatId,
+    settleProof,
+    messages,
+  }: {
+    feePayer: PublicKey;
+    hostUser: PublicKey;
+    guestUser: PublicKey;
+    chatId: string;
+    settleProof: JsonProof;
+    messages: string[];
+  }) {
+    const result = await this._call("settleContract", {
+      feePayerAddress58: feePayer.toBase58(),
+      hostUser58: hostUser.toBase58(),
+      guestUser58: guestUser.toBase58(),
+      chatId,
+      settleProof,
+      messages,
+    });
     return result;
   }
 
@@ -78,12 +97,14 @@ export default class ZkProgramWorkerClient {
     receiverPublicKey,
     messageIndex,
     previousProof,
+    messages,
   }: {
     signingPrivateKey: PrivateKey;
     pureMessage: string;
     receiverPublicKey: PublicKey;
     messageIndex: number;
     previousProof: JsonProof;
+    messages: string[];
   }): Promise<{ encryptedMessage: any; proof: any }> {
     return this._call("generateProofWithPreviousProof", {
       signingPrivateKey58: signingPrivateKey.toBase58(),
@@ -91,6 +112,7 @@ export default class ZkProgramWorkerClient {
       receiverPublicKey58: receiverPublicKey.toBase58(),
       messageIndex,
       previousProof,
+      messages,
     });
   }
 

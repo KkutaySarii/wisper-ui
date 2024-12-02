@@ -39,6 +39,12 @@ const ChatMobile = ({ chat }: { chat: ChatType }) => {
           chatWith={chat.chatWith}
           username={chat.username}
           image={chat.image}
+          previousProof={
+            chat?.messages?.length > 0
+              ? chat?.messages[chat?.messages?.length - 1]?.content?.proof
+              : null
+          }
+          messages={chat?.messages?.map((msg) => msg?.content?.pureMessage)}
           setIsSettingsOpen={setIsSettingsOpen}
           isOnline={chat.receiperOnline}
           isTyping={chat.receiperTyping}
@@ -56,6 +62,7 @@ const ChatMobile = ({ chat }: { chat: ChatType }) => {
             ? chat?.messages[chat?.messages?.length - 1]?.content?.proof
             : null
         }
+        messages={chat?.messages?.map((msg) => msg?.content?.pureMessage) || []}
       />
     </div>
   );

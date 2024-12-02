@@ -19,6 +19,7 @@ export const ChatInput = ({
   receiverPubKey58,
   lengthOfMessage,
   previousProof,
+  messages,
 }: {
   chatWith: string | null;
   chat_id: string;
@@ -26,6 +27,7 @@ export const ChatInput = ({
   receiverPubKey58: string;
   lengthOfMessage: number;
   previousProof: JsonProof | null;
+  messages: string[];
 }) => {
   const [message, setMessage] = useState<string>("");
 
@@ -47,8 +49,13 @@ export const ChatInput = ({
     if (!message || !zkProgramClient) {
       return;
     }
-    console.log("generating proof");
     setIsGeneratingProof(true);
+    if (!signingPrivateKey58 || !receiverPubKey58) {
+      setIsGeneratingProof(false);
+      return;
+    }
+    console.log("generating proof");
+
     const signingPrivateKey = PrivateKey.fromBase58(signingPrivateKey58);
     const receiverPublicKey = PublicKey.fromBase58(receiverPubKey58);
     let respProof;
@@ -65,6 +72,7 @@ export const ChatInput = ({
         receiverPublicKey,
         messageIndex: lengthOfMessage,
         previousProof: previousProof,
+        messages,
       });
     }
 

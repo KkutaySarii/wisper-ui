@@ -9,6 +9,7 @@ import { useAppDispatch } from "@/types/state";
 import { ChatSettings } from "@/components/modals/ChatSettings";
 import { useOutsideClick } from "@/hooks/useOutsideClick";
 import { closeOverlay, openOverlay } from "@/redux/slices/overlaySlice";
+import { JsonProof } from "o1js";
 
 interface ChatTopProps {
   id: string;
@@ -18,6 +19,8 @@ interface ChatTopProps {
   setIsSettingsOpen: (value: boolean) => void;
   isOnline: boolean;
   isTyping: boolean;
+  previousProof: JsonProof | null;
+  messages: string[];
 }
 
 export const ChatTop: FC<ChatTopProps> = ({
@@ -28,6 +31,8 @@ export const ChatTop: FC<ChatTopProps> = ({
   setIsSettingsOpen,
   isOnline,
   isTyping,
+  previousProof,
+  messages,
 }) => {
   const { theme } = useTheme();
 
@@ -111,6 +116,9 @@ export const ChatTop: FC<ChatTopProps> = ({
         {isDropdownOpen && (
           <ChatSettings
             chat_id={id}
+            previousProof={previousProof}
+            messages={messages}
+            chatWith={chatWith}
             setIsSettingsOpen={setIsSettingsOpen}
             setIsDropdownOpen={setIsDropdownOpen}
           />
