@@ -178,14 +178,15 @@ export const chatSlice = createSlice({
       }>
     ) => {
       const { offlineChats } = action.payload;
-      state.chats = state.chats
-        .filter((chat) => !offlineChats.includes(chat.id))
-        .map((chat) => {
+      state.chats = state.chats.map((chat) => {
+        if (offlineChats.includes(chat.id)) {
           return {
             ...chat,
             type: "terminated",
           };
-        });
+        }
+        return chat;
+      });
 
       saveToLocalStorage(state.pubKey58, state.chats);
     },
