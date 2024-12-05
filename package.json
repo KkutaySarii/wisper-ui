@@ -21,7 +21,7 @@
     "react-redux": "^9.1.2",
     "socket.io-client": "^4.8.0",
     "uuid": "^10.0.0",
-    "wisper-mina-contracts": "*"
+    "wisper-mina-contracts": "0.1.7"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.7",
