@@ -264,6 +264,51 @@ export const SessionProvider = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, publicKey58, zkProgram, chats]);
 
+  useEffect(() => {
+    if (!socket) {
+      return;
+    }
+    const handleChat = async (data: any) => {
+      const messagingChat = chats.find((chat) => chat.id === data?.chatId);
+      if (!messagingChat) {
+        return;
+      }
+      data?.messages?.forEach(async (element: any) => {
+        let unRead = false;
+        if (!params || !params.chat_id || params.chat_id !== data?.chatId) {
+          unRead = true;
+        }
+
+        const receiverPublicKey = PublicKey.fromBase58(
+          messagingChat?.receiverPublicKey
+        );
+        const signingPrivateKey = PrivateKey.fromBase58(
+          messagingChat?.senderPrivateKey
+        );
+        const pureMessage = await zkProgram.decryptMessage({
+          encryptedMessage: element?.message?.encryptedMessage,
+          receiverPublicKey,
+          signingPrivateKey,
+        });
+        console.log("pureMessage", pureMessage);
+        dispatch(
+          getNewMessage({
+            chatWith: data?.senderPk,
+            newMessagePack: element?.message,
+            pureMessage,
+            unRead,
+          })
+        );
+      });
+    };
+    socket?.on("receive chat", handleChat);
+
+    return () => {
+      socket.off("receive chat", handleChat);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, chats, params, zkProgram]);
+
   // set public key
   useEffect(() => {
     if (publicKey) {
