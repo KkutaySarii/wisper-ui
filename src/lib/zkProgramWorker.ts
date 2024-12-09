@@ -160,9 +160,12 @@ const functions = {
     chatId: string;
     settleProof: JsonProof;
     messages: string[];
+    contractPk58: string;
   }) => {
     const hostUser: PublicKey = PublicKey.fromBase58(args.hostUser58);
     const guestUser: PublicKey = PublicKey.fromBase58(args.guestUser58);
+
+    const contractPK = PublicKey.fromBase58(args.contractPk58);
 
     const chatIdField = convertStringToField(args.chatId);
 
@@ -181,6 +184,8 @@ const functions = {
       merkleTree.setLeaf(BigInt(index), Poseidon.hash(messageFields));
     });
 
+    const wisperInstance = new state.WisperContract!(contractPK);
+
     const transaction = await Mina.transaction(
       {
         sender: hostUser,
@@ -197,6 +202,8 @@ const functions = {
         );
       }
     );
+    await transaction.prove();
+    state.WisperInstance = wisperInstance;
     return transaction!.toJSON();
   },
 

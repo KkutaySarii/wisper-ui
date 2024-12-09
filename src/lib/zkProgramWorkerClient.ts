@@ -44,12 +44,14 @@ export default class ZkProgramWorkerClient {
     chatId,
     settleProof,
     messages,
+    contractPk,
   }: {
     hostUser: PublicKey;
     guestUser: PublicKey;
     chatId: string;
     settleProof: JsonProof;
     messages: string[];
+    contractPk: PublicKey;
   }) {
     const result = await this._call("settleContract", {
       hostUser58: hostUser.toBase58(),
@@ -57,6 +59,7 @@ export default class ZkProgramWorkerClient {
       chatId,
       settleProof,
       messages,
+      contractPk58: contractPk.toBase58(),
     });
     return result;
   }

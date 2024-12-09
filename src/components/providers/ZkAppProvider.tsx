@@ -4,6 +4,7 @@ import ZkProgramWorkerClient from "@/lib/zkProgramWorkerClient";
 import { setZkProgram } from "@/redux/slices/zkApp/slice";
 import { useAppDispatch } from "@/types/state";
 import { timeout } from "@/utils/timeout";
+import { ZkAppProvider as ZkAppProviderContract } from "@/states/ZkApp";
 
 export const ZkAppProvider = ({
   children,
@@ -48,7 +49,7 @@ export const ZkAppProvider = ({
           <div className="w-16 h-16 rounded-full border-t-[4px] border-b-[4px] border-r-[4px] border-white animate-spin"></div>
         </div>
       )}
-      {children}
+      <ZkAppProviderContract>{children}</ZkAppProviderContract>
     </>
   );
 };

@@ -1,6 +1,6 @@
 export const waitForAccountActivation = async (
   txHash: string,
-  timeoutMs: number = 660000,
+  timeoutMs: number = 700000,
   intervalMs: number = 60000
 ) => {
   const startTime = Date.now();
