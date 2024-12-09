@@ -10,6 +10,7 @@ import { ChatSettings } from "@/components/modals/ChatSettings";
 import { useOutsideClick } from "@/hooks/useOutsideClick";
 import { closeOverlay, openOverlay } from "@/redux/slices/overlaySlice";
 import { JsonProof } from "o1js";
+import { ChatState, TerminatedState } from "@/types/messages";
 
 interface ChatTopProps {
   id: string;
@@ -21,6 +22,8 @@ interface ChatTopProps {
   isTyping: boolean;
   previousProof: JsonProof | null;
   messages: string[];
+  chatType: ChatState;
+  chatTerminateStatus: TerminatedState | null;
 }
 
 export const ChatTop: FC<ChatTopProps> = ({
@@ -33,6 +36,8 @@ export const ChatTop: FC<ChatTopProps> = ({
   isTyping,
   previousProof,
   messages,
+  chatType,
+  chatTerminateStatus,
 }) => {
   const { theme } = useTheme();
 
@@ -59,7 +64,10 @@ export const ChatTop: FC<ChatTopProps> = ({
   return (
     <div className="flex justify-between items-center">
       <div className="flex items-center">
-        <button onClick={() => router.back()} className="pr-4 mobile:hidden">
+        <button
+          onClick={() => router.push("/chat")}
+          className="pr-4 min-[701px]:hidden"
+        >
           <BackIcon theme={theme} />
         </button>
         <div className="flex items-stretch gap-x-3">
@@ -121,6 +129,8 @@ export const ChatTop: FC<ChatTopProps> = ({
             chatWith={chatWith}
             setIsSettingsOpen={setIsSettingsOpen}
             setIsDropdownOpen={setIsDropdownOpen}
+            chatType={chatType}
+            chatTerminateStatus={chatTerminateStatus}
           />
         )}
       </div>

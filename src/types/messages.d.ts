@@ -9,7 +9,7 @@ export interface ChatResponse {
 
 export interface ChatType {
   id: string; // Chat id
-  type: "active" | "terminated" | "deleted" | "departed"; // Chat status
+  type: ChatState; // Chat status
   chatWith: string | null; // Public key base 58 of the chat partner
   username: string | null; // Username of the chat partner
   image: ImageType; // Image of the chat partner
@@ -23,6 +23,8 @@ export interface ChatType {
   signResult: SignedResponse;
   terminatedState: TerminatedState | null;
 }
+
+export type ChatState = "active" | "terminated" | "departed";
 
 export interface TerminatedState {
   contractPublicKey58: string | null;

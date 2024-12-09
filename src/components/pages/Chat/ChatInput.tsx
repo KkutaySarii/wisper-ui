@@ -11,6 +11,7 @@ import {
   userTyping,
 } from "@/redux/slices/socket/slice";
 import { JsonProof, PrivateKey, PublicKey } from "o1js";
+import { ChatState } from "@/types/messages";
 
 export const ChatInput = ({
   chatWith,
@@ -20,6 +21,7 @@ export const ChatInput = ({
   lengthOfMessage,
   previousProof,
   messages,
+  chatType,
 }: {
   chatWith: string | null;
   chat_id: string;
@@ -28,6 +30,7 @@ export const ChatInput = ({
   lengthOfMessage: number;
   previousProof: JsonProof | null;
   messages: string[];
+  chatType: ChatState;
 }) => {
   const [message, setMessage] = useState<string>("");
 
@@ -124,7 +127,11 @@ export const ChatInput = ({
           className="w-full border border-light-input-border bg-transparent dark:bg-[#151515] rounded-[44px] h-12 px-4 text-sm outline-none"
           placeholder="Type a message"
           value={message}
-          disabled={isGeneratingProof}
+          disabled={
+            isGeneratingProof ||
+            chatType === "terminated" ||
+            chatType === "departed"
+          }
           onChange={(e) => {
             setMessage(e.target.value);
             if (!!e.target.value) {
@@ -144,7 +151,11 @@ export const ChatInput = ({
         />
       </label>
       <button
-        disabled={isGeneratingProof}
+        disabled={
+          isGeneratingProof ||
+          chatType === "terminated" ||
+          chatType === "departed"
+        }
         onClick={sendMessage}
         className={`min-w-10 min-h-10 transition-all flex items-center justify-center rounded-full ${
           !!message

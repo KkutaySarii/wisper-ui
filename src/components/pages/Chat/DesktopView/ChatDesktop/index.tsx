@@ -39,10 +39,13 @@ const ChatDesktop = ({ chat }: { chat: ChatType }) => {
               messages={chat?.messages?.map((msg) => msg?.content?.pureMessage)}
               setIsSettingsOpen={setIsSettingsOpen}
               isTyping={chat.receiperTyping}
+              chatType={chat.type}
+              chatTerminateStatus={chat.terminatedState}
             />
           </div>
           <MessageList messages={chat?.messages} />
           <ChatInput
+            chatType={chat.type}
             chatWith={chat?.chatWith}
             chat_id={chat.id}
             signingPrivateKey58={chat?.senderPrivateKey}

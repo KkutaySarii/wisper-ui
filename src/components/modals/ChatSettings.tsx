@@ -9,10 +9,11 @@ import { APP_URL } from "@/lib/constants";
 import { useAppDispatch, useAppSelector } from "@/types/state";
 import { closeOverlay } from "@/redux/slices/overlaySlice";
 import toast from "react-hot-toast";
-import { deleteChat } from "@/redux/slices/chat/slice";
+import { deleteChat, settlementStart } from "@/redux/slices/chat/slice";
 import { useRouter } from "next/navigation";
 import { JsonProof } from "o1js";
 import { useZkApp } from "@/states/ZkApp";
+import { ChatState, TerminatedState } from "@/types/messages";
 
 interface ChatSettingsProps {
   icon: React.ReactNode;
@@ -29,6 +30,8 @@ export const ChatSettings = ({
   setIsDropdownOpen,
   previousProof,
   messages,
+  chatType,
+  chatTerminateStatus,
 }: {
   chat_id: string;
   chatWith: string;
@@ -36,6 +39,8 @@ export const ChatSettings = ({
   setIsDropdownOpen: (value: boolean) => void;
   previousProof: JsonProof | null;
   messages: string[];
+  chatType: ChatState;
+  chatTerminateStatus: TerminatedState | null;
 }) => {
   const { theme } = useTheme();
 
@@ -50,6 +55,10 @@ export const ChatSettings = ({
   const publicKey58 = useAppSelector((state) => state.session.publicKeyBase58);
 
   const settleContractFunc = async () => {
+    const userConfirmed = confirm("Are you sure you want to settle this chat?");
+    if (!userConfirmed) return;
+
+    dispatch(settlementStart({ chat_id }));
     await settleContract({
       params: {
         publicKey58,
@@ -66,6 +75,17 @@ export const ChatSettings = ({
       icon: <ShareIcon theme={theme} size={20} />,
       text: "Share Link",
       callback: () => {
+        if (chatType === "terminated") {
+          toast.error("Chat is already terminated", {
+            position: "top-right",
+          });
+          return;
+        } else if (chatType === "departed") {
+          toast.error("Chat is already departed", {
+            position: "top-right",
+          });
+          return;
+        }
         window.navigator.clipboard.writeText(chat_link_url);
         toast.success("Copied to clipboard!", {
           position: "top-right",
@@ -78,24 +98,40 @@ export const ChatSettings = ({
       callback: () => {
         setIsSettingsOpen(true);
       },
+      // TODO: handle other cases
     },
     {
       text: "Chat Settlement",
       icon: <FileIcon theme={theme} />,
       callback: () => {
-        settleContractFunc();
+        if (chatType !== "terminated") {
+          settleContractFunc();
+        } else if (
+          chatType === "terminated" &&
+          chatTerminateStatus?.status === "SETTLED"
+        ) {
+          toast.error("Chat is already settled", {
+            position: "top-right",
+          });
+        }
       },
+      // TODO: handle other cases
     },
-    {
-      text: "Delete Chat",
-      icon: <Image src={TrashIcon} alt="trash" width={20} height={20} />,
-      type: "danger",
-      callback: () => {
-        dispatch(deleteChat({ chat_id }));
-        router.push("/home");
-      },
-    },
+    ...(chatType === "terminated" || chatType === "departed"
+      ? [
+          {
+            text: "Delete Chat",
+            icon: <Image src={TrashIcon} alt="trash" width={20} height={20} />,
+            type: "danger" as "danger" | "primary",
+            callback: () => {
+              dispatch(deleteChat({ chat_id }));
+              router.push("/home");
+            },
+          },
+        ]
+      : []),
   ];
+
   return (
     <div className="bg-white dark:bg-dark-bg rounded-[20px] flex flex-col absolute top-[72px] right-4 z-50">
       {items.map((item, index) => (

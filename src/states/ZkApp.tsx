@@ -6,10 +6,24 @@ import ZkAppWorkerClient from "@/lib/zkProgramWorkerClient";
 import { timeout } from "@/utils/timeout";
 import { generateZkAppKeyPair, sendTxAuro } from "@/utils/zkApp";
 import { waitForAccountActivation } from "@/utils/waitTx";
+import { useAppDispatch } from "@/types/state";
+import {
+  settlementContractStart,
+  settlementDeployed,
+  settlementFailed,
+  settlementSuccess,
+} from "@/redux/slices/chat/slice";
 
-export type ParamsType = {
+export type InitParamsType = {
   params: {
     publicKey58: string;
+  };
+};
+
+export type DeployParamsType = {
+  params: {
+    publicKey58: string;
+    chat_id: string;
   };
 };
 
@@ -25,7 +39,7 @@ export type SettleParamsType = {
 };
 
 export type ZkAppContextType = {
-  deployContract: ({ params }: ParamsType) => Promise<{
+  deployContract: ({ params }: DeployParamsType) => Promise<{
     zkappPublicKey58: string;
     hash: string;
     deployerPublicKey: PublicKey | null;
@@ -47,7 +61,9 @@ const ZkAppContext = createContext<ZkAppContextType>({
 } as ZkAppContextType);
 
 export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
-  const initMethod = async ({ params }: ParamsType) => {
+  const dispatch = useAppDispatch();
+
+  const initMethod = async ({ params }: InitParamsType) => {
     const zkappWorkerClient = new ZkAppWorkerClient();
 
     await timeout(5);
@@ -81,9 +97,11 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
     return { zkappWorkerClient, deployerPublicKey };
   };
 
-  const deployContract = async ({ params }: ParamsType) => {
+  const deployContract = async ({ params }: DeployParamsType) => {
     const { zkappWorkerClient, deployerPublicKey } = await initMethod({
-      params,
+      params: {
+        publicKey58: params.publicKey58,
+      },
     });
     console.log("Deploying contract...");
 
@@ -106,6 +124,14 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
 
     const hash = await sendTxAuro(deployTxJson);
 
+    dispatch(
+      settlementDeployed({
+        chat_id: params.chat_id,
+        contractPublicKey58: zkappPublicKey58,
+        deployTxHash: hash,
+      })
+    );
+
     return {
       zkappPublicKey58,
       hash,
@@ -116,6 +142,7 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
 
   const settleContract = async ({ params }: SettleParamsType) => {
     if (params.contractPublicKey58) {
+      dispatch(settlementContractStart({ chat_id: params.chat_id }));
       const { zkappWorkerClient, deployerPublicKey } = await initMethod({
         params: {
           publicKey58: params.publicKey58,
@@ -147,7 +174,7 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       const { hash, zkappPublicKey58, deployerPublicKey, zkappWorkerClient } =
         await deployContract({
-          params: { publicKey58: params.publicKey58 },
+          params: { publicKey58: params.publicKey58, chat_id: params.chat_id },
         });
 
       try {
@@ -158,8 +185,10 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
         console.log("zkApp account is now active!");
       } catch (error) {
         console.error(error.message);
+        dispatch(settlementFailed({ chat_id: params.chat_id }));
         return;
       }
+      dispatch(settlementContractStart({ chat_id: params.chat_id }));
 
       const guestUser = PublicKey.fromBase58(params.guestPublicKey58);
 
@@ -182,7 +211,11 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
 
       console.log("sending transaction...");
 
-      await sendTxAuro(settleContractTxJson);
+      const SettleHash = await sendTxAuro(settleContractTxJson);
+
+      dispatch(
+        settlementSuccess({ chat_id: params.chat_id, settleTxHash: SettleHash })
+      );
     }
   };
 

@@ -171,7 +171,7 @@ export const chatSlice = createSlice({
         chat.receiperTyping = isTyping;
       }
     },
-    terminateChats: (
+    departeChats: (
       state,
       action: PayloadAction<{
         offlineChats: string[];
@@ -182,7 +182,7 @@ export const chatSlice = createSlice({
         if (offlineChats.includes(chat.id)) {
           return {
             ...chat,
-            type: "terminated",
+            type: "departed",
           };
         }
         return chat;
@@ -231,6 +231,107 @@ export const chatSlice = createSlice({
       saveToLocalStorage(state.pubKey58, state.chats);
       window.location.href = "/home";
     },
+    settlementStart: (
+      state,
+      action: PayloadAction<{
+        chat_id: string;
+      }>
+    ) => {
+      const { chat_id } = action.payload;
+      state.chats = state.chats.map((chat) => {
+        if (chat?.id === chat_id) {
+          chat.terminatedState = {
+            contractPublicKey58: null,
+            deployTxHash: null,
+            settleTxHash: null,
+            settleProof: chat.lastMessage?.content?.proof,
+            status: "DEPLOYING",
+          };
+          chat.type = "terminated";
+        }
+        return chat;
+      });
+      saveToLocalStorage(state.pubKey58, state.chats);
+    },
+    settlementDeployed: (
+      state,
+      action: PayloadAction<{
+        chat_id: string;
+        contractPublicKey58: string;
+        deployTxHash: string;
+      }>
+    ) => {
+      const { chat_id, contractPublicKey58, deployTxHash } = action.payload;
+      state.chats = state.chats.map((chat) => {
+        if (chat?.id === chat_id) {
+          chat.terminatedState = {
+            contractPublicKey58,
+            deployTxHash,
+            settleTxHash: null,
+            settleProof: chat.lastMessage?.content?.proof,
+            status: "DEPLOYED",
+          };
+        }
+        return chat;
+      });
+      saveToLocalStorage(state.pubKey58, state.chats);
+    },
+    settlementContractStart: (
+      state,
+      action: PayloadAction<{
+        chat_id: string;
+      }>
+    ) => {
+      const { chat_id } = action.payload;
+      state.chats = state.chats.map((chat) => {
+        if (chat?.id === chat_id) {
+          chat.terminatedState = {
+            ...chat.terminatedState,
+            status: "SETTLEING",
+          };
+        }
+        return chat;
+      });
+      saveToLocalStorage(state.pubKey58, state.chats);
+    },
+    settlementSuccess: (
+      state,
+      action: PayloadAction<{
+        chat_id: string;
+        settleTxHash: string;
+      }>
+    ) => {
+      const { chat_id, settleTxHash } = action.payload;
+      state.chats = state.chats.map((chat) => {
+        if (chat?.id === chat_id) {
+          chat.terminatedState = {
+            ...chat.terminatedState,
+            settleTxHash: settleTxHash,
+            status: "SETTLED",
+          };
+        }
+        return chat;
+      });
+      saveToLocalStorage(state.pubKey58, state.chats);
+    },
+    settlementFailed: (
+      state,
+      action: PayloadAction<{
+        chat_id: string;
+      }>
+    ) => {
+      const { chat_id } = action.payload;
+      state.chats = state.chats.map((chat) => {
+        if (chat?.id === chat_id) {
+          chat.terminatedState = {
+            ...chat.terminatedState,
+            status: "FAILED",
+          };
+        }
+        return chat;
+      });
+      saveToLocalStorage(state.pubKey58, state.chats);
+    },
   },
 
   extraReducers: (builder) => {
@@ -250,6 +351,7 @@ export const chatSlice = createSlice({
           senderPrivateKey: action.payload.signingPrivateKey,
           receiverPublicKey: "",
           signResult: action.payload.signResult,
+          terminatedState: null,
         };
         state.chats.push(newChat);
         saveToLocalStorage(action.payload.senderPublicKey, state.chats);
@@ -273,6 +375,7 @@ export const chatSlice = createSlice({
           senderPrivateKey: "",
           receiverPublicKey: "",
           signResult: null,
+          terminatedState: null,
         };
         state.chats.push(newChat);
         saveToLocalStorage(state.pubKey58, state.chats);
@@ -290,10 +393,15 @@ export const {
   setReceiverTyping,
   getNewMessage,
   setUserPubKey,
-  terminateChats,
+  departeChats,
   setSignResult,
   setReceiverSignResult,
   deleteChat,
+  settlementStart,
+  settlementDeployed,
+  settlementContractStart,
+  settlementSuccess,
+  settlementFailed,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

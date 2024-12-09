@@ -21,26 +21,30 @@ export const ChatComp = ({ chat }: ChatCompProps) => {
   return (
     <div
       onClick={handleChatClick}
-      className={`p-4 cursor-pointer border-secondary hover:bg-primary dark:bg-opacity-60 transition-all flex font-sora items-center gap-x-3 flex-1 w-full ${
+      className={`p-4 cursor-pointer border-secondary hover:bg-primary dark:bg-opacity-60 transition-all flex font-sora items-center gap-x-3 mobile:flex-1 w-full ${
         chat?.isSelected ? "bg-primary" : ""
       } ${chat?.isLastChat ? "border-b-0" : "border-b"}`}
     >
-      <Image
-        alt="user"
-        src={`/users/${chat.image}.svg`}
-        width={48}
-        height={48}
-        className="max-[852px]:hidden block"
-      />
-      <div className="h-12 flex-1 py-1 flex flex-col justify-between w-full min-[852px]:max-w-[90px] max-w-[100px] min-[1050px]:max-w-[150px] min-[1250px]:max-w-full">
-        <p className="font-semibold text-light-chats-text dark:text-white text-base truncate">
-          {chat.username
-            ? chat.username
-            : chat?.chatWith?.slice(0, 12) + "..." + chat?.chatWith?.slice(-6)}
-        </p>
-        <p className="truncate font-semibold max-w-[250px] text-opacity-60 text-light-chats-text dark:text-white text-xs min-[1050px]:max-w-[150px]">
-          {chat.lastMessage?.content?.pureMessage}
-        </p>
+      <div className="flex gap-x-3 flex-1">
+        <Image
+          alt="user"
+          src={`/users/${chat.image}.svg`}
+          width={48}
+          height={48}
+          className="max-[852px]:hidden max-[700px]:block block"
+        />
+        <div className="h-12 flex-1 py-1 flex flex-col justify-between w-full min-[852px]:max-w-[90px] max-w-[100px] min-[1050px]:max-w-[150px] min-[1250px]:max-w-full">
+          <p className="font-semibold text-light-chats-text dark:text-white text-base truncate">
+            {chat.username
+              ? chat.username
+              : chat?.chatWith?.slice(0, 12) +
+                "..." +
+                chat?.chatWith?.slice(-6)}
+          </p>
+          <p className="truncate font-semibold max-w-[250px] text-opacity-60 text-light-chats-text dark:text-white text-xs min-[1050px]:max-w-[150px]">
+            {chat.lastMessage?.content?.pureMessage}
+          </p>
+        </div>
       </div>
       <div className="h-12 py-1 flex flex-col items-end justify-between">
         <p className="font-medium text-opacity-60 text-light-chats-text dark:text-light-grey text-[10px] whitespace-nowrap">
@@ -51,6 +55,16 @@ export const ChatComp = ({ chat }: ChatCompProps) => {
             <span className="text-white dark:text-black text-[10px] font-medium">
               {chat.unReadMessages}
             </span>
+          </div>
+        )}{" "}
+        {chat?.type === "terminated" && (
+          <div className="bg-secondary bg-opacity-60 backdrop-blur-md rounded-full text-xs px-2 py-[2px]">
+            Terminated
+          </div>
+        )}
+        {chat?.type === "departed" && (
+          <div className="bg-secondary bg-opacity-60 backdrop-blur-md rounded-full text-xs px-2 py-[2px]">
+            Departed
           </div>
         )}
       </div>

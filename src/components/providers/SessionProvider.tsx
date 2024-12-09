@@ -12,7 +12,7 @@ import {
 import { ImageType } from "@/types/messages";
 import { initSocket } from "@/redux/slices/socket/slice";
 import {
-  terminateChats,
+  departeChats,
   getNewMessage,
   setReceiverOnline,
   setReceiverTyping,
@@ -41,7 +41,7 @@ export const SessionProvider = ({
 
   const zkProgram = useAppSelector((state) => state.zkApp.zkProgram);
 
-  const terminateOfflineChat = useCallback(() => {
+  const departeOfflineChat = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const offlineChats = chats
       .filter((chat) => !chat.receiperOnline)
@@ -49,7 +49,7 @@ export const SessionProvider = ({
 
     console.log("offlineChats", offlineChats);
     dispatch(
-      terminateChats({
+      departeChats({
         offlineChats,
       })
     );
@@ -123,7 +123,7 @@ export const SessionProvider = ({
   // before unload
   useEffect(() => {
     const handleBeforeUnload = (event: any) => {
-      terminateOfflineChat();
+      departeOfflineChat();
       const message = "Sayfadan ayrılmak üzeresiniz!";
       event.returnValue = message;
       return message;

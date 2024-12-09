@@ -48,10 +48,13 @@ const ChatMobile = ({ chat }: { chat: ChatType }) => {
           setIsSettingsOpen={setIsSettingsOpen}
           isOnline={chat.receiperOnline}
           isTyping={chat.receiperTyping}
+          chatType={chat.type}
+          chatTerminateStatus={chat.terminatedState}
         />
       </div>
       <MessageList messages={chat?.messages} />
       <ChatInput
+        chatType={chat.type}
         chatWith={chat?.chatWith}
         chat_id={chat?.id}
         signingPrivateKey58={chat?.senderPrivateKey}
