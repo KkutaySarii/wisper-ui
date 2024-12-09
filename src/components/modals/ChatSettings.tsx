@@ -140,7 +140,7 @@ export const ChatSettings = ({
               icon: (
                 <Image src={TrashIcon} alt="trash" width={20} height={20} />
               ),
-              type: "danger" as "danger",
+              type: "danger" as any,
               callback: () => {
                 dispatch(deleteChat({ chat_id }));
                 router.push("/home");
