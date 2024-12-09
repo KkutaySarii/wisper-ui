@@ -30,7 +30,7 @@ class MessageVerificationProgramProof extends ZkProgram.Proof(
   MessageVerificationProgram
 ) {}
 
-const MERKLE_TREE_HEIGHT = 8; // Adjust based on your needs
+const MERKLE_TREE_HEIGHT = 10; // Adjust based on your needs
 
 const state = {
   MessageVerificationProgram: null as null | typeof MessageVerificationProgram,
@@ -149,25 +149,24 @@ const functions = {
       }
     );
 
+    await transaction.prove();
     transaction.sign([zkAppPrivateKey]);
 
     return transaction!.toJSON();
   },
   settleContract: async (args: {
-    feePayerAddress58: string;
     hostUser58: string;
     guestUser58: string;
     chatId: string;
     settleProof: JsonProof;
     messages: string[];
   }) => {
-    const feePayer: PublicKey = PublicKey.fromBase58(args.feePayerAddress58);
     const hostUser: PublicKey = PublicKey.fromBase58(args.hostUser58);
     const guestUser: PublicKey = PublicKey.fromBase58(args.guestUser58);
 
     const chatIdField = convertStringToField(args.chatId);
 
-    const timestamp = Field(BigInt(Date.now()));
+    const timestamp = Field(Date.now());
 
     const settleProof = (await MessageVerificationProgramProof.fromJSON(
       args.settleProof
@@ -184,7 +183,7 @@ const functions = {
 
     const transaction = await Mina.transaction(
       {
-        sender: feePayer,
+        sender: hostUser,
         fee: 1e9,
       },
       async () => {
@@ -198,8 +197,7 @@ const functions = {
         );
       }
     );
-    await transaction.prove();
-    return transaction.toJSON();
+    return transaction!.toJSON();
   },
 
   fetchAccount: async (args: { publicKey58: string }) => {

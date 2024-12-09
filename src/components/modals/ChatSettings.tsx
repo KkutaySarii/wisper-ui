@@ -130,7 +130,6 @@ export const ChatSettings = ({
       return;
     }
     const settleContractTxJson = await zkappWorkerClient!.settleContract({
-      feePayer: deployerPublicKey,
       hostUser: deployerPublicKey,
       guestUser: PublicKey.fromBase58(chatWith),
       chatId: chat_id,

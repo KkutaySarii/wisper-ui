@@ -39,14 +39,12 @@ export default class ZkProgramWorkerClient {
   }
 
   async settleContract({
-    feePayer,
     hostUser,
     guestUser,
     chatId,
     settleProof,
     messages,
   }: {
-    feePayer: PublicKey;
     hostUser: PublicKey;
     guestUser: PublicKey;
     chatId: string;
@@ -54,7 +52,6 @@ export default class ZkProgramWorkerClient {
     messages: string[];
   }) {
     const result = await this._call("settleContract", {
-      feePayerAddress58: feePayer.toBase58(),
       hostUser58: hostUser.toBase58(),
       guestUser58: guestUser.toBase58(),
       chatId,
