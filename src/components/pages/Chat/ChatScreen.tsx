@@ -49,7 +49,7 @@ export const ChatScreen = ({ chat_id }: { chat_id: string }) => {
       return;
     }
 
-    if (!chat.signResult && !chat.senderPrivateKey) {
+    if (!chat.signResult || !chat.senderPrivateKey) {
       hasInitializedKeyPair.current = true;
       console.log("Creating new key pair...");
       createNewKP().then((res) => {
@@ -67,7 +67,7 @@ export const ChatScreen = ({ chat_id }: { chat_id: string }) => {
         );
       });
     }
-  }, [chat, chat_id, dispatch]);
+  }, [chat, chat_id]);
 
   useEffect(() => {
     if (!socket || !publicKey || !chat_id) {
