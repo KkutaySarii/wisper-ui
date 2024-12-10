@@ -8,7 +8,6 @@ import { useEffect, useRef } from "react";
 import { joinChat } from "@/redux/slices/chat/thunk";
 import { createNewKP } from "@/utils/createNewKP";
 import { setSignResult } from "@/redux/slices/chat/slice";
-import { useRouter } from "next/navigation";
 
 export const ChatScreen = ({ chat_id }: { chat_id: string }) => {
   const hasInitializedKeyPair = useRef(false);
