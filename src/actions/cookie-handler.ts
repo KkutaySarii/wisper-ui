@@ -8,7 +8,6 @@ export async function setCookie(publicKey: string) {
     value: publicKey,
     path: "/",
     expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 10),
-    // domain: process.env.NEXT_PUBLIC_DOMAIN, //TODO
     sameSite: "lax",
     secure: true,
   });

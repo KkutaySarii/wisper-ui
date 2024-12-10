@@ -25,23 +25,14 @@ export const useGetChat = () => {
     return storedChat?.chats;
   }, [pubKey58]);
 
-  const getChatFromQueue = () => {
-    const socketChat: ChatType[] = [];
-    return socketChat;
-  };
-
   const saveChatToRedux = useCallback(() => {
     if (!pubKey58) return;
     setLoading(true);
     try {
       const storedChat = getChatFromLocalStorage();
 
-      const socketChat = getChatFromQueue();
-
-      // TODO: check if the chat already exists in the stored chat
-
       // Merge the two chats
-      const mergedChat = [...storedChat, ...socketChat];
+      const mergedChat = [...storedChat];
 
       // Save the merged chat to the redux store
       dispatch(setChat({ chats: mergedChat, pubKey58: pubKey58 }));

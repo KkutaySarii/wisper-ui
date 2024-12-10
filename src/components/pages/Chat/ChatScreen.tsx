@@ -8,6 +8,8 @@ import { useEffect, useRef } from "react";
 import { joinChat } from "@/redux/slices/chat/thunk";
 import { createNewKP } from "@/utils/createNewKP";
 import { setSignResult } from "@/redux/slices/chat/slice";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export const ChatScreen = ({ chat_id }: { chat_id: string }) => {
   const hasInitializedKeyPair = useRef(false);
@@ -22,6 +24,8 @@ export const ChatScreen = ({ chat_id }: { chat_id: string }) => {
 
   const dispatch = useAppDispatch();
 
+  const router = useRouter();
+
   useEffect(() => {
     if (!chat && publicKey) {
       const localeChat = localStorage.getItem(`chat-${publicKey}`);
@@ -32,13 +36,18 @@ export const ChatScreen = ({ chat_id }: { chat_id: string }) => {
           };
 
       const isExistChat = storedChat?.chats?.find((c: any) => c.id === chat_id);
-      if (!isExistChat) {
+      if (!isExistChat && isExistChat?.type !== "active") {
         dispatch(
           joinChat({
             chat_id,
             publicKey,
           })
         );
+      } else {
+        toast.error("Chat already exists", {
+          position: "top-right",
+        });
+        router.push("/home");
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

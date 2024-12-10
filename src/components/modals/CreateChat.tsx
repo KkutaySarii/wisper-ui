@@ -31,7 +31,7 @@ export const CreateChat = () => {
   const checkExistUser = (publicKey: string) => {
     const existChat = chats.find((chat) => chat.chatWith === publicKey);
 
-    if (existChat && existChat.type === "active") {
+    if (existChat || existChat?.type === "active") {
       toast.error("Chat already exists", {
         position: "top-right",
       });

@@ -127,17 +127,16 @@ export const ChatSettings = ({
             <FileIcon theme={theme} />
           ),
         callback: () => {
-          // if (chatType !== "terminated") {
-          //   settleContractFunc();
-          // } else if (
-          //   chatType === "terminated" &&
-          //   chatTerminateStatus?.status === "SETTLED"
-          // ) {
-          //   router.push(
-          //     `https://minascan.io/devnet/tx/${chatTerminateStatus?.settleTxHash}?type=zk-tx`
-          //   );
-          // }
-          settleContractFunc();
+          if (chatType !== "terminated") {
+            settleContractFunc();
+          } else if (
+            chatType === "terminated" &&
+            chatTerminateStatus?.status === "SETTLED"
+          ) {
+            router.push(
+              `https://minascan.io/devnet/tx/${chatTerminateStatus?.settleTxHash}?type=zk-tx`
+            );
+          }
         },
       },
       ...(chatType === "terminated" || chatType === "departed"

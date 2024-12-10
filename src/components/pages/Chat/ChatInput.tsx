@@ -12,6 +12,7 @@ import {
 } from "@/redux/slices/socket/slice";
 import { JsonProof, PrivateKey, PublicKey } from "o1js";
 import { ChatState } from "@/types/messages";
+import toast from "react-hot-toast";
 
 export const ChatInput = ({
   chatWith,
@@ -79,12 +80,14 @@ export const ChatInput = ({
       });
     }
 
-    //TODO: add loading state
     console.log("respProof", respProof);
     setIsGeneratingProof(false);
 
     if (!respProof) {
-      return; // TODO: Handle error with toast
+      toast.error("Failed to generate proof", {
+        position: "top-right",
+      });
+      return;
     }
 
     const messagePack = {

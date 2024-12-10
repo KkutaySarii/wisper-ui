@@ -53,7 +53,6 @@ export const SessionProvider = ({
         offlineChats,
       })
     );
-    // TODO: terminate offline chat
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chats]);
 
