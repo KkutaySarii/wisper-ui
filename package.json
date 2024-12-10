@@ -12,6 +12,7 @@
     "@reduxjs/toolkit": "^2.2.7",
     "comlink": "^4.4.1",
     "jsonwebtoken": "^9.0.2",
+    "lottie-react": "^2.4.0",
     "next": "14.2.15",
     "next-themes": "^0.3.0",
     "o1js": "https://pkg.pr.new/o1-labs/o1js@fc16ce3",

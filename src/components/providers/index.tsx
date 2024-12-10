@@ -9,6 +9,7 @@ import { Overlay } from "./Overlay";
 import { ModalLayout } from "../modals/ModalLayout";
 import { Toaster } from "react-hot-toast";
 import { ZkAppProvider } from "./ZkAppProvider";
+import { ScreenProtect } from "../common/ScreenProtect";
 
 const MainProvider = ({
   children,
@@ -24,14 +25,16 @@ const MainProvider = ({
   return (
     <NextThemesProvider attribute="class" defaultTheme="dark">
       <Provider store={store}>
-        <Toaster />
-        <ZkAppProvider>
-          <SessionProvider publicKey={publicKey}>
-            <ModalLayout />
-            <Overlay />
-            {children}
-          </SessionProvider>
-        </ZkAppProvider>
+        <ScreenProtect>
+          <Toaster />
+          <ZkAppProvider>
+            <SessionProvider publicKey={publicKey}>
+              <ModalLayout />
+              <Overlay />
+              {children}
+            </SessionProvider>
+          </ZkAppProvider>
+        </ScreenProtect>
       </Provider>
     </NextThemesProvider>
   );
