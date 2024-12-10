@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { setChat } from "@/redux/slices/chat/slice";
-import { ChatType } from "@/types/messages";
 import { useAppDispatch, useAppSelector } from "@/types/state";
 
 export const useGetChat = () => {

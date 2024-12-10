@@ -8,7 +8,6 @@ import { useEffect, useRef } from "react";
 import { joinChat } from "@/redux/slices/chat/thunk";
 import { createNewKP } from "@/utils/createNewKP";
 import { setSignResult } from "@/redux/slices/chat/slice";
-import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 export const ChatScreen = ({ chat_id }: { chat_id: string }) => {
@@ -23,8 +22,6 @@ export const ChatScreen = ({ chat_id }: { chat_id: string }) => {
   const socket = useAppSelector((state) => state.socket.socket);
 
   const dispatch = useAppDispatch();
-
-  const router = useRouter();
 
   useEffect(() => {
     if (!chat && publicKey) {
