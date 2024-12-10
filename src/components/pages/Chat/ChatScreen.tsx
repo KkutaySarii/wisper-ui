@@ -36,18 +36,13 @@ export const ChatScreen = ({ chat_id }: { chat_id: string }) => {
           };
 
       const isExistChat = storedChat?.chats?.find((c: any) => c.id === chat_id);
-      if (!isExistChat && isExistChat?.type !== "active") {
+      if (!isExistChat) {
         dispatch(
           joinChat({
             chat_id,
             publicKey,
           })
         );
-      } else {
-        toast.error("Chat already exists", {
-          position: "top-right",
-        });
-        router.push("/home");
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

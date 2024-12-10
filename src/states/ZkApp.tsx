@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import { JsonProof, PublicKey } from "o1js";
 
@@ -13,6 +13,7 @@ import {
   settlementFailed,
   settlementSuccess,
 } from "@/redux/slices/chat/slice";
+import toast from "react-hot-toast";
 
 export type InitParamsType = {
   params: {
@@ -63,6 +64,18 @@ const ZkAppContext = createContext<ZkAppContextType>({
 export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
   const dispatch = useAppDispatch();
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (toastMessage) {
+      toast(toastMessage, {
+        position: "top-right",
+        duration: 4000,
+      });
+      console.log(toastMessage);
+    }
+  }, [toastMessage]);
+
   const initMethod = async ({ params }: InitParamsType) => {
     const zkappWorkerClient = new ZkAppWorkerClient();
 
@@ -86,13 +99,13 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
 
     console.log("Account exists:", accountExists);
 
-    console.log("Loading contract...");
+    setToastMessage("Loading contract...");
     await zkappWorkerClient.loadContract();
 
-    console.log("compiling contract...");
+    setToastMessage("compiling contract...");
     await zkappWorkerClient.compileContract();
 
-    console.log("zkApp compiled");
+    setToastMessage("zkApp compiled");
 
     return { zkappWorkerClient, deployerPublicKey };
   };
@@ -103,24 +116,24 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
         publicKey58: params.publicKey58,
       },
     });
-    console.log("Deploying contract...");
+    setToastMessage("Deploying contract...");
 
     const { zkappPrivateKey, zkappPublicKey58 } = generateZkAppKeyPair();
 
-    console.log("creating deploy transaction...");
+    setToastMessage("creating deploy transaction...");
 
     const deployTxJson = await zkappWorkerClient!.deployContract(
       zkappPrivateKey,
       deployerPublicKey
     );
 
-    console.log("checking AURO connection...");
+    setToastMessage("checking AURO connection...");
 
     const network = await window.mina.requestNetwork();
 
     console.log(`Network: ${network}`);
 
-    console.log("sending transaction...");
+    setToastMessage("sending transaction...");
 
     const hash = await sendTxAuro(deployTxJson);
 
@@ -162,13 +175,13 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
         contractPk,
       });
 
-      console.log("checking AURO connection...");
+      setToastMessage("checking AURO connection...");
 
       const network = await window.mina.requestNetwork();
 
       console.log(`Network: ${network}`);
 
-      console.log("sending transaction...");
+      setToastMessage("sending transaction...");
 
       await sendTxAuro(settleContractTxJson);
     } else {
@@ -182,7 +195,7 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
         if (res.status === "failed") {
           throw new Error("zkApp account activation failed");
         }
-        console.log("zkApp account is now active!");
+        setToastMessage("zkApp account is now active!");
       } catch (error) {
         console.error(error.message);
         dispatch(settlementFailed({ chat_id: params.chat_id }));
@@ -203,15 +216,16 @@ export const ZkAppProvider = ({ children }: { children: React.ReactNode }) => {
         contractPk,
       });
 
-      console.log("checking AURO connection...");
+      setToastMessage("checking AURO connection...");
 
       const network = await window.mina.requestNetwork();
 
       console.log(`Network: ${network}`);
 
-      console.log("sending transaction...");
+      setToastMessage("sending transaction...");
 
       const SettleHash = await sendTxAuro(settleContractTxJson);
+      setToastMessage("Settlement transaction sent!");
 
       dispatch(
         settlementSuccess({ chat_id: params.chat_id, settleTxHash: SettleHash })
