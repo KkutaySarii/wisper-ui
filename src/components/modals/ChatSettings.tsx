@@ -15,6 +15,7 @@ import { JsonProof } from "o1js";
 import { useZkApp } from "@/states/ZkApp";
 import { ChatState, TerminatedState } from "@/types/messages";
 import { useEffect, useState } from "react";
+import { chatClosed } from "@/redux/slices/socket/slice";
 
 interface ChatSettingsProps {
   icon: React.ReactNode;
@@ -60,8 +61,13 @@ export const ChatSettings = ({
   const settleContractFunc = async () => {
     const userConfirmed = confirm("Are you sure you want to settle this chat?");
     if (!userConfirmed) return;
-
     dispatch(settlementStart({ chat_id }));
+    dispatch(
+      chatClosed({
+        chat_id,
+        chatType: "terminated",
+      })
+    );
     await settleContract({
       params: {
         publicKey58,
@@ -121,16 +127,17 @@ export const ChatSettings = ({
             <FileIcon theme={theme} />
           ),
         callback: () => {
-          if (chatType !== "terminated") {
-            settleContractFunc();
-          } else if (
-            chatType === "terminated" &&
-            chatTerminateStatus?.status === "SETTLED"
-          ) {
-            router.push(
-              `https://minascan.io/devnet/tx/${chatTerminateStatus?.settleTxHash}?type=zk-tx`
-            );
-          }
+          // if (chatType !== "terminated") {
+          //   settleContractFunc();
+          // } else if (
+          //   chatType === "terminated" &&
+          //   chatTerminateStatus?.status === "SETTLED"
+          // ) {
+          //   router.push(
+          //     `https://minascan.io/devnet/tx/${chatTerminateStatus?.settleTxHash}?type=zk-tx`
+          //   );
+          // }
+          settleContractFunc();
         },
       },
       ...(chatType === "terminated" || chatType === "departed"
@@ -152,82 +159,6 @@ export const ChatSettings = ({
 
     setItems(updatedItems);
   }, [chatType, chatTerminateStatus, theme, chat_id, chatWith]);
-
-  // const items: ChatSettingsProps[] = [
-  //   {
-  //     icon: <ShareIcon theme={theme} size={20} />,
-  //     text: "Share Link",
-  //     callback: () => {
-  //       if (chatType === "terminated") {
-  //         toast.error("Chat is already terminated", {
-  //           position: "top-right",
-  //         });
-  //         return;
-  //       } else if (chatType === "departed") {
-  //         toast.error("Chat is already departed", {
-  //           position: "top-right",
-  //         });
-  //         return;
-  //       }
-  //       // TODO: handle other cases
-  //       window.navigator.clipboard.writeText(chat_link_url);
-  //       toast.success("Copied to clipboard!", {
-  //         position: "top-right",
-  //       });
-  //     },
-  //   },
-  //   {
-  //     text: "Recipient Settings",
-  //     icon: <SettingsIcon theme={theme} />,
-  //     callback: () => {
-  //       setIsSettingsOpen(true);
-  //     },
-  //   },
-  //   {
-  //     text:
-  //       chatType === "terminated" &&
-  //       (chatTerminateStatus?.status === "DEPLOYING" ||
-  //         chatTerminateStatus?.status === "SETTLEING")
-  //         ? "Settling Chat"
-  //         : chatTerminateStatus?.status === "SETTLED"
-  //         ? `Chat Settled`
-  //         : "Settle Chat",
-  //     icon:
-  //       chatType === "terminated" &&
-  //       (chatTerminateStatus?.status === "DEPLOYING" ||
-  //         chatTerminateStatus?.status === "SETTLEING") ? (
-  //         <div className="w-4 h-4 border-b border-t border-r dark:border-white border-black rounded-full animate-spin"></div>
-  //       ) : (
-  //         <FileIcon theme={theme} />
-  //       ),
-  //     callback: () => {
-  //       if (chatType !== "terminated") {
-  //         settleContractFunc();
-  //       } else if (
-  //         chatType === "terminated" &&
-  //         chatTerminateStatus?.status === "SETTLED"
-  //       ) {
-  //         router.push(
-  //           `https://minascan.io/devnet/tx/${chatTerminateStatus?.settleTxHash}?type=zk-tx`
-  //         );
-  //       }
-  //     },
-  //     // TODO: handle other cases
-  //   },
-  //   ...(chatType === "terminated" || chatType === "departed"
-  //     ? [
-  //         {
-  //           text: "Delete Chat",
-  //           icon: <Image src={TrashIcon} alt="trash" width={20} height={20} />,
-  //           type: "danger" as "danger" | "primary",
-  //           callback: () => {
-  //             dispatch(deleteChat({ chat_id }));
-  //             router.push("/home");
-  //           },
-  //         },
-  //       ]
-  //     : []),
-  // ];
 
   return (
     <div className="bg-white dark:bg-dark-bg rounded-[20px] flex flex-col absolute top-[72px] right-4 z-50">

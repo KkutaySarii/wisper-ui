@@ -9,7 +9,7 @@ import {
   deletePublicKeyCookie,
   setPublicKeyCookie,
 } from "@/redux/slices/session/thunk";
-import { ImageType } from "@/types/messages";
+import { ChatState, ImageType } from "@/types/messages";
 import { initSocket } from "@/redux/slices/socket/slice";
 import {
   departeChats,
@@ -18,6 +18,7 @@ import {
   setReceiverTyping,
   setUserPubKey,
   setReceiverSignResult,
+  terminateChat,
 } from "@/redux/slices/chat/slice";
 import { SignedResponse } from "@/types/auro";
 import { checkSignature } from "@/utils/checkSignature";
@@ -47,7 +48,6 @@ export const SessionProvider = ({
       .filter((chat) => !chat.receiperOnline)
       .map((chat) => chat.id);
 
-    console.log("offlineChats", offlineChats);
     dispatch(
       departeChats({
         offlineChats,
@@ -136,6 +136,36 @@ export const SessionProvider = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chats]);
+
+  // user closes chat
+  useEffect(() => {
+    if (!socket || !chats) {
+      return;
+    }
+    socket?.on(
+      "user close chat",
+      (data: { chatId: string; chatType: ChatState }) => {
+        if (!data?.chatId || !data?.chatType) return;
+        const chat = chats.find((chat) => chat.id === data?.chatId);
+        if (!chat) {
+          return;
+        }
+        if (data?.chatType === "terminated") {
+          dispatch(terminateChat({ chat_id: data?.chatId }));
+        } else if (data?.chatType === "departed") {
+          dispatch(
+            departeChats({
+              offlineChats: [data.chatId],
+            })
+          );
+        }
+      }
+    );
+    return () => {
+      socket.off("user close chat");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, chats]);
 
   // receive sign result
   useEffect(() => {

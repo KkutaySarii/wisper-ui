@@ -231,6 +231,28 @@ export const chatSlice = createSlice({
       saveToLocalStorage(state.pubKey58, state.chats);
       window.location.href = "/home";
     },
+    terminateChat: (
+      state,
+      action: PayloadAction<{
+        chat_id: string;
+      }>
+    ) => {
+      const { chat_id } = action.payload;
+      state.chats = state.chats.map((chat) => {
+        if (chat?.id === chat_id) {
+          chat.type = "terminated";
+          chat.terminatedState = {
+            contractPublicKey58: null,
+            deployTxHash: null,
+            settleTxHash: null,
+            settleProof: chat.lastMessage?.content?.proof,
+            status: "NONE",
+          };
+        }
+        return chat;
+      });
+      saveToLocalStorage(state.pubKey58, state.chats);
+    },
     settlementStart: (
       state,
       action: PayloadAction<{
@@ -402,6 +424,7 @@ export const {
   settlementContractStart,
   settlementSuccess,
   settlementFailed,
+  terminateChat,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

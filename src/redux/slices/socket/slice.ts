@@ -1,4 +1,5 @@
 import { EncryptedData } from "@/lib/zkProgramWorker";
+import { ChatState } from "@/types/messages";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { JsonProof } from "o1js";
 import { io } from "socket.io-client";
@@ -77,6 +78,24 @@ export const socketSlice = createSlice({
         receiverPk: action.payload.receiver58,
       });
     },
+    chatClosed: (
+      state,
+      action: PayloadAction<{
+        chat_id: string;
+        chatType: ChatState;
+      }>
+    ) => {
+      if (
+        action.payload.chatType === "departed" ||
+        action.payload.chatType === "terminated"
+      ) {
+        state.socket.emit(
+          "chat closed",
+          action.payload.chat_id,
+          action.payload.chatType
+        );
+      }
+    },
   },
 });
 
@@ -86,6 +105,7 @@ export const {
   userStopTyping,
   userTyping,
   sendMessageSocket,
+  chatClosed,
 } = socketSlice.actions;
 
 export default socketSlice.reducer;
