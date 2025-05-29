@@ -17,8 +17,8 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "Wisper",
-  description: "Wisper your secrets securely.",
+  title: "Mina-Chat",
+  description: "Mina-Chat your secrets securely.",
 };
 
 export default function RootLayout({
