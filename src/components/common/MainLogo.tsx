@@ -15,7 +15,8 @@ export const MainLogo = () => {
 
   return (
     <button onClick={goToHome}>
-      <MainLogoSvg theme={theme} />
+      {/* <MainLogoSvg theme={theme} /> */}
+      <h4 className="text-3xl font-bold">Mina-Chat</h4>
     </button>
   );
 };
