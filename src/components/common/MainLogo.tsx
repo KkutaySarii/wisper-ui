@@ -1,11 +1,11 @@
 "use client";
-import { useTheme } from "next-themes";
+// import { useTheme } from "next-themes";
 
-import { MainLogoSvg } from "@/assets/svg/MainLogoSvg";
+// import { MainLogoSvg } from "@/assets/svg/MainLogoSvg";
 import { useRouter } from "next/navigation";
 
 export const MainLogo = () => {
-  const { theme } = useTheme();
+  // const { theme } = useTheme();
 
   const router = useRouter();
 
